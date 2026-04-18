@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
-import { AI_EXTRACT_RESULTS, AI_CHAT_RESPONSES } from '../../data/mockFormFields'
+import { DOCUMENT_FIELDS, AI_CHAT_RESPONSES } from '../../data/mockFormFields'
+import { useApplications } from '../../context/ApplicationContext'
 import { useToast } from '../../context/ToastContext'
 import { useDropzone } from 'react-dropzone'
 import { Spinner } from '../ui/Spinner'
 
-/* ── Chat bubble ──────────────────────────────────────────────── */
 function Bubble({ msg }) {
   const isUser = msg.role === 'user'
   return (
@@ -32,7 +32,6 @@ function Typing() {
   )
 }
 
-/* ── File drop zone ───────────────────────────────────────────── */
 function FileDropZone({ accept, onFile }) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept: accept ? Object.fromEntries(accept.split(',').map(e => {
@@ -54,63 +53,67 @@ function FileDropZone({ accept, onFile }) {
   )
 }
 
-/* ── Question Card (Claude-style) ─────────────────────────────── */
-function QuestionCard({ field, index, total, onAnswer, onSkip }) {
-  const [textVal, setTextVal] = useState('')
+function QuestionCard({ field, index, total, savedValue, onAnswer, onSkip }) {
+  const [textVal, setTextVal] = useState(
+    savedValue !== undefined && typeof savedValue !== 'boolean' && typeof savedValue !== 'object'
+      ? String(savedValue) : ''
+  )
   const [hovered, setHovered] = useState(null)
-
   const boolOpts = [{ label: 'Yes', value: true }, { label: 'No', value: false }]
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-float overflow-hidden animate-slide-up">
-      {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
         <p className="text-sm font-semibold text-dark leading-snug flex-1 pr-3">
           {field.label}
           {field.required && <span className="text-red-400 ml-0.5">*</span>}
         </p>
         <div className="flex items-center gap-2 flex-shrink-0">
+          {savedValue !== undefined && (
+            <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded-full">Saved</span>
+          )}
           <span className="text-[11px] text-gray-400 font-medium tabular-nums">{index + 1} of {total}</span>
           <button onClick={onSkip} className="w-5 h-5 flex items-center justify-center rounded text-gray-300 hover:text-gray-500 hover:bg-gray-100 transition-colors text-xs">✕</button>
         </div>
       </div>
 
-      {/* Boolean: Yes / No */}
       {field.type === 'boolean' && (
         <div className="divide-y divide-gray-100">
           {field.description && <p className="px-4 py-2 text-[11px] text-gray-400 bg-gray-50/80">{field.description}</p>}
           {boolOpts.map((opt, i) => (
             <button key={opt.label} onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)}
               onClick={() => onAnswer(opt.value, opt.label)}
-              className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-all ${hovered === i ? 'bg-primary/5' : 'hover:bg-gray-50'}`}>
+              className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-all ${
+                savedValue === opt.value ? 'bg-primary/10' : hovered === i ? 'bg-primary/5' : 'hover:bg-gray-50'
+              }`}>
               <div className="flex items-center gap-3">
                 <span className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-400 bg-gray-50 flex-shrink-0">{i + 1}</span>
                 <span className="font-medium text-dark">{opt.label}</span>
               </div>
-              {hovered === i && <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              {(hovered === i || savedValue === opt.value) && <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
             </button>
           ))}
         </div>
       )}
 
-      {/* Select */}
       {field.type === 'select' && (
         <div className="divide-y divide-gray-100">
           {field.options?.map((opt, i) => (
             <button key={opt} onMouseEnter={() => setHovered(i)} onMouseLeave={() => setHovered(null)}
               onClick={() => onAnswer(opt, opt)}
-              className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-all ${hovered === i ? 'bg-primary/5' : 'hover:bg-gray-50'}`}>
+              className={`w-full flex items-center justify-between px-4 py-3 text-sm transition-all ${
+                savedValue === opt ? 'bg-primary/10' : hovered === i ? 'bg-primary/5' : 'hover:bg-gray-50'
+              }`}>
               <div className="flex items-center gap-3">
                 <span className="w-5 h-5 rounded-full border border-gray-200 flex items-center justify-center text-[10px] font-bold text-gray-400 bg-gray-50 flex-shrink-0">{i + 1}</span>
                 <span className="font-medium text-dark">{opt}</span>
               </div>
-              {hovered === i && <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+              {(hovered === i || savedValue === opt) && <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/></svg>}
             </button>
           ))}
         </div>
       )}
 
-      {/* Text / Number */}
       {(field.type === 'text' || field.type === 'number') && (
         <div className="p-3">
           <div className="flex gap-2">
@@ -130,7 +133,6 @@ function QuestionCard({ field, index, total, onAnswer, onSkip }) {
         </div>
       )}
 
-      {/* File */}
       {field.type === 'file' && (
         <div className="p-3">
           {field.description && <p className="text-[11px] text-gray-400 mb-2">{field.description}</p>}
@@ -138,7 +140,6 @@ function QuestionCard({ field, index, total, onAnswer, onSkip }) {
         </div>
       )}
 
-      {/* Footer */}
       <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
         <p className="text-[10px] text-gray-400">
           {field.type === 'boolean' || field.type === 'select' ? 'Click an option to continue' : '↵ Enter to confirm'}
@@ -151,7 +152,6 @@ function QuestionCard({ field, index, total, onAnswer, onSkip }) {
   )
 }
 
-/* ── Summary card ─────────────────────────────────────────────── */
 function SummaryCard({ fields, answers, onDownload }) {
   return (
     <div className="bg-white border border-gray-200 rounded-2xl shadow-float overflow-hidden animate-slide-up">
@@ -187,16 +187,18 @@ function SummaryCard({ fields, answers, onDownload }) {
   )
 }
 
-/* ── Main component ───────────────────────────────────────────── */
-/*  onFieldAnswered(index, fieldId, rawValue, displayValue, fieldType) */
-export function AIAssistant({ bid, onFieldAnswered }) {
+export function AIAssistant({ bid, bidId, docId, onFieldAnswered }) {
   const { addToast } = useToast()
+  const { getDocAnswers, saveDocAnswers, startApplication } = useApplications()
   const endRef = useRef(null)
 
-  const [phase, setPhase] = useState('intro') // intro | analyzing | questioning | complete
+  const resolvedBidId = bidId || bid?.id
+  const docFields = DOCUMENT_FIELDS[resolvedBidId]?.[docId] || DOCUMENT_FIELDS.default?.[docId] || DOCUMENT_FIELDS.default?.doc1
+
+  const [phase, setPhase] = useState('intro')
   const [messages, setMessages] = useState([{
     id: 1, role: 'ai',
-    content: `Hi! I'll walk you through every field in this bid form one question at a time — just like filling out the real PDF. Click "Analyze PDF" to begin.`,
+    content: `Hi! I'll walk you through every field in this bid form one question at a time. Click "Analyze PDF" to begin.`,
   }])
   const [isTyping, setIsTyping] = useState(false)
   const [fields, setFields] = useState(null)
@@ -222,17 +224,31 @@ export function AIAssistant({ bid, onFieldAnswered }) {
     pushUser('Analyze this PDF and extract all form fields.')
     setPhase('analyzing')
     setIsTyping(true)
-    await new Promise(r => setTimeout(r, 2000))
+    await new Promise(r => setTimeout(r, 1800))
     setIsTyping(false)
-    const result = AI_EXTRACT_RESULTS[bid.id] || AI_EXTRACT_RESULTS.default
-    setFields(result.fields)
+
+    const f = docFields?.fields || []
+    setFields(f)
+
+    // Load saved answers
+    const saved = getDocAnswers(resolvedBidId, docId)
+    setAnswers(saved)
+
+    const savedCount = Object.keys(saved).length
+    const hasSaved = savedCount > 0
+
     await pushAI(
-      `✅ Analysis complete — ${result.confidence}% confidence. I found ${result.fields.length} form fields. Each answer will auto-fill on the PDF in real time. Let's start!`,
+      hasSaved
+        ? `✅ Found ${f.length} fields — ${savedCount} already have saved answers (shown in blue). I'll ask you to confirm or update each one.`
+        : `✅ Analysis complete — ${f.length} form fields detected. Your answers will auto-fill on the PDF in real time. Let's start!`,
       100
     )
+
+    // Ensure application is started
+    startApplication(resolvedBidId)
     setPhase('questioning')
     setCurrentIdx(0)
-    addToast({ message: `${result.fields.length} fields detected — filling in real time`, type: 'success' })
+    addToast({ message: `${f.length} fields detected — filling in real time`, type: 'success' })
   }
 
   async function handleAnswer(fieldId, rawValue, displayValue) {
@@ -241,7 +257,10 @@ export function AIAssistant({ bid, onFieldAnswered }) {
     const newAnswers = { ...answers, [fieldId]: rawValue }
     setAnswers(newAnswers)
 
-    // Notify parent → updates PDF overlay
+    // Save to context
+    saveDocAnswers(resolvedBidId, docId, newAnswers, fields.length)
+
+    // Notify parent for PDF overlay
     onFieldAnswered?.(currentIdx, fieldId, rawValue, displayValue, field.type)
 
     const next = currentIdx + 1
@@ -252,7 +271,7 @@ export function AIAssistant({ bid, onFieldAnswered }) {
       addToast({ message: 'PDF fully filled — ready to download!', type: 'success' })
     } else {
       setIsTyping(true)
-      await new Promise(r => setTimeout(r, 400))
+      await new Promise(r => setTimeout(r, 350))
       setIsTyping(false)
       setCurrentIdx(next)
     }
@@ -280,7 +299,6 @@ export function AIAssistant({ bid, onFieldAnswered }) {
 
   function handleDownload() {
     addToast({ message: 'Filled PDF downloaded!', type: 'success' })
-    const a = document.createElement('a'); a.href = bid.pdfFile; a.download = `filled_${bid.pdfLabel}`; a.click()
   }
 
   const currentField = phase === 'questioning' && fields ? fields[currentIdx] : null
@@ -292,7 +310,7 @@ export function AIAssistant({ bid, onFieldAnswered }) {
         <div className="w-6 h-6 bg-primary/20 rounded-full flex items-center justify-center text-xs flex-shrink-0">🤖</div>
         <div className="flex-1 min-w-0">
           <p className="text-xs font-semibold text-dark">AI Bid Assistant</p>
-          <p className="text-[10px] text-gray-400 truncate">{bid.title}</p>
+          <p className="text-[10px] text-gray-400 truncate">{bid?.title}</p>
         </div>
         {phase === 'questioning' && fields && (
           <div className="flex-shrink-0 text-[11px] font-bold text-primary-dark bg-primary/10 px-2 py-0.5 rounded-full">
@@ -304,21 +322,18 @@ export function AIAssistant({ bid, onFieldAnswered }) {
         )}
       </div>
 
-      {/* Progress bar */}
       {phase === 'questioning' && fields && (
         <div className="h-0.5 bg-gray-100 flex-shrink-0">
           <div className="h-full bg-primary transition-all duration-500" style={{ width: `${(currentIdx / fields.length) * 100}%` }} />
         </div>
       )}
 
-      {/* Messages — scrollable, fills remaining height */}
       <div className="flex-1 overflow-y-auto min-h-0 px-3 py-3">
         {messages.map(m => <Bubble key={m.id} msg={m} />)}
         {isTyping && <Typing />}
         <div ref={endRef} />
       </div>
 
-      {/* Action area */}
       <div className="px-3 pb-3 pt-2 flex-shrink-0 border-t border-gray-100 space-y-2">
         {phase === 'intro' && (
           <button onClick={handleAnalyze}
@@ -336,10 +351,11 @@ export function AIAssistant({ bid, onFieldAnswered }) {
 
         {phase === 'questioning' && currentField && (
           <QuestionCard
-            key={currentField.id}
+            key={`${docId}-${currentField.id}`}
             field={currentField}
             index={currentIdx}
             total={fields.length}
+            savedValue={answers[currentField.id]}
             onAnswer={(raw, display) => handleAnswer(currentField.id, raw, display)}
             onSkip={handleSkip}
           />

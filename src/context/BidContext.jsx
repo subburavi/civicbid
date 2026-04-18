@@ -9,6 +9,13 @@ export function BidProvider({ children }) {
   const [filterCategory, setFilterCategory] = useState('All')
   const [filterStatus, setFilterStatus] = useState('All')
   const [searchQuery, setSearchQuery] = useState('')
+  const [bookmarkedIds, setBookmarkedIds] = useState(['event-4128', 'event-4130'])
+
+  function toggleBookmark(bidId) {
+    setBookmarkedIds(prev =>
+      prev.includes(bidId) ? prev.filter(id => id !== bidId) : [...prev, bidId]
+    )
+  }
 
   function addBid(bid) {
     const newBid = {
@@ -55,6 +62,8 @@ export function BidProvider({ children }) {
         addBid,
         updateBid,
         deleteBid,
+        bookmarkedIds,
+        toggleBookmark,
       }}
     >
       {children}

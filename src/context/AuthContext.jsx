@@ -11,9 +11,11 @@ const MOCK_USERS = [
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loginError, setLoginError] = useState('')
+  const [registeredUsers, setRegisteredUsers] = useState([])
 
   function login(email, password) {
-    const found = MOCK_USERS.find(u => u.email === email && u.password === password)
+    const allUsers = [...MOCK_USERS, ...registeredUsers]
+    const found = allUsers.find(u => u.email === email && u.password === password)
     if (found) {
       setUser(found)
       setLoginError('')
@@ -23,12 +25,29 @@ export function AuthProvider({ children }) {
     return false
   }
 
+  function register({ name, email, password, company, phone, categories }) {
+    const newUser = {
+      id: Date.now(),
+      email,
+      password,
+      role: 'user',
+      name,
+      avatar: name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase(),
+      company,
+      phone,
+      categories,
+    }
+    setRegisteredUsers(prev => [...prev, newUser])
+    setUser(newUser)
+    return true
+  }
+
   function logout() {
     setUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loginError, setLoginError }}>
+    <AuthContext.Provider value={{ user, login, logout, register, loginError, setLoginError }}>
       {children}
     </AuthContext.Provider>
   )

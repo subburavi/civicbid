@@ -20,10 +20,10 @@ const USER_NAV = [
     to: '/bids',
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20">
-        <path d="M4 6h12M4 10h8M4 14h10" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        <circle cx="9" cy="9" r="5.5" stroke="currentColor" strokeWidth="1.6" />
+        <path d="M13.5 13.5l3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
       </svg>
     ),
-    badge: 6,
   },
   {
     label: 'My Applications',
@@ -36,6 +36,15 @@ const USER_NAV = [
     ),
   },
   {
+    label: 'Bookmarks',
+    to: '/bookmarks',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20">
+        <path d="M5 3h10a1 1 0 011 1v13l-6-4-6 4V4a1 1 0 011-1z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
     label: 'Deadlines',
     to: '/deadlines',
     icon: (
@@ -44,8 +53,40 @@ const USER_NAV = [
         <path d="M10 6v4l2.5 2.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
       </svg>
     ),
-    badge: 4,
-    badgeColor: 'bg-red-500',
+  },
+]
+
+const USER_ACCOUNT_NAV = [
+  {
+    label: 'My Profile',
+    to: '/profile',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20">
+        <circle cx="10" cy="6" r="3.5" stroke="currentColor" strokeWidth="1.6" />
+        <path d="M3 17c0-3.3 3.1-6 7-6s7 2.7 7 6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Billing',
+    to: '/billing',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20">
+        <rect x="2" y="5" width="16" height="12" rx="2" stroke="currentColor" strokeWidth="1.6" />
+        <path d="M2 9h16" stroke="currentColor" strokeWidth="1.6" />
+        <path d="M6 13h2M10 13h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+    ),
+  },
+  {
+    label: 'Settings',
+    to: '/settings',
+    icon: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20">
+        <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.6" />
+        <path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.2 4.2l1.4 1.4M14.4 14.4l1.4 1.4M4.2 15.8l1.4-1.4M14.4 5.6l1.4-1.4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      </svg>
+    ),
   },
 ]
 
@@ -96,7 +137,6 @@ export function Sidebar() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const isAdmin = user?.role === 'admin'
-  const nav = isAdmin ? ADMIN_NAV : USER_NAV
 
   function handleLogout() {
     logout()
@@ -118,10 +158,9 @@ export function Sidebar() {
           </div>
           <span className="font-heading font-bold text-dark text-lg">CivicBid</span>
         </div>
-        <p className="text-xs text-gray-400 mt-1 font-medium">MN Government Procurement</p>
+        <p className="text-xs text-gray-400 mt-0.5 font-medium">MN Government Procurement</p>
       </div>
 
-      {/* Role indicator */}
       {isAdmin && (
         <div className="mx-3 mt-3 px-3 py-2 bg-primary/10 rounded-xl border border-primary/20">
           <p className="text-xs font-semibold text-primary-dark flex items-center gap-1.5">
@@ -135,48 +174,29 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto">
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-2">
-          {isAdmin ? 'Administration' : 'Main Menu'}
-        </p>
-        <div className="flex flex-col gap-0.5">
-          {nav.map(item => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/admin' || item.to === '/dashboard'}
-              className={({ isActive }) =>
-                clsx('sidebar-link', isActive ? 'active' : '')
-              }
-            >
-              <span className="flex-shrink-0">{item.icon}</span>
-              <span className="flex-1">{item.label}</span>
-              {item.badge && (
-                <span
-                  className={clsx(
-                    'text-[10px] font-bold text-white px-1.5 py-0.5 rounded-full',
-                    item.badgeColor || 'bg-primary-dark'
-                  )}
-                >
-                  {item.badge}
-                </span>
-              )}
-            </NavLink>
-          ))}
-        </div>
-
-        {!isAdmin && (
+        {isAdmin ? (
           <>
-            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mt-5 mb-2">Tools</p>
-            <NavLink
-              to="/bids"
-              className={({ isActive }) => clsx('sidebar-link', isActive ? 'active' : '')}
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20">
-                <circle cx="9" cy="9" r="5.5" stroke="currentColor" strokeWidth="1.6" />
-                <path d="M13.5 13.5l3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              </svg>
-              Search Bids
-            </NavLink>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-2">Administration</p>
+            <div className="flex flex-col gap-0.5">
+              {ADMIN_NAV.map(item => (
+                <NavItem key={item.to} item={item}  />
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mb-2">Main Menu</p>
+            <div className="flex flex-col gap-0.5">
+              {USER_NAV.map(item => (
+                <NavItem key={item.to} item={item}  />
+              ))}
+            </div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-2 mt-5 mb-2">Account</p>
+            <div className="flex flex-col gap-0.5">
+              {USER_ACCOUNT_NAV.map(item => (
+                <NavItem key={item.to} item={item}  />
+              ))}
+            </div>
           </>
         )}
       </nav>
@@ -191,11 +211,8 @@ export function Sidebar() {
             <p className="text-sm font-semibold text-dark truncate">{user?.name}</p>
             <p className="text-xs text-gray-400 capitalize">{user?.role} account</p>
           </div>
-          <button
-            onClick={handleLogout}
-            title="Logout"
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-          >
+          <button onClick={handleLogout} title="Logout"
+            className="text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20">
               <path d="M13 3h4v14h-4M9 14l4-4-4-4M13 10H3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -203,5 +220,18 @@ export function Sidebar() {
         </div>
       </div>
     </aside>
+  )
+}
+
+function NavItem({ item }) {
+  return (
+    <NavLink
+      to={item.to}
+      end={item.to === '/admin' || item.to === '/dashboard'}
+      className={({ isActive }) => clsx('sidebar-link', isActive ? 'active' : '')}
+    >
+      <span className="flex-shrink-0">{item.icon}</span>
+      <span className="flex-1">{item.label}</span>
+    </NavLink>
   )
 }
