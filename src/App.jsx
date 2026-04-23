@@ -11,7 +11,7 @@ import BrowseBidsPage from './pages/BrowseBidsPage'
 import BidDetailPage from './pages/BidDetailPage'
 import MyApplicationsPage from './pages/MyApplicationsPage'
 import ApplicationDetailPage from './pages/ApplicationDetailPage'
-import DeadlinesPage from './pages/DeadlinesPage'
+import MyProjectsPage from './pages/MyProjectsPage'
 import ProfilePage from './pages/ProfilePage'
 import BillingPage from './pages/BillingPage'
 import SettingsPage from './pages/SettingsPage'
@@ -20,6 +20,8 @@ import AdminDashboardPage from './pages/AdminDashboardPage'
 import CreateBidPage from './pages/CreateBidPage'
 import ManageBidsPage from './pages/ManageBidsPage'
 import NotFoundPage from './pages/NotFoundPage'
+import ProposalPage from './pages/ProposalPage'
+import LandingPage from './pages/LandingPage'
 
 function ProtectedRoute({ children, adminOnly = false }) {
   const { user } = useAuth()
@@ -42,7 +44,8 @@ function AppRoutes() {
         <Route path="/bids/:id" element={<ProtectedRoute><BidDetailPage /></ProtectedRoute>} />
         <Route path="/applications" element={<ProtectedRoute><MyApplicationsPage /></ProtectedRoute>} />
         <Route path="/applications/:bidId" element={<ProtectedRoute><ApplicationDetailPage /></ProtectedRoute>} />
-        <Route path="/deadlines" element={<ProtectedRoute><DeadlinesPage /></ProtectedRoute>} />
+        <Route path="/proposals/:bidId" element={<ProtectedRoute><ProposalPage /></ProtectedRoute>} />
+        <Route path="/projects" element={<ProtectedRoute><MyProjectsPage /></ProtectedRoute>} />
         <Route path="/bookmarks" element={<ProtectedRoute><BookmarksPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
         <Route path="/billing" element={<ProtectedRoute><BillingPage /></ProtectedRoute>} />
@@ -55,7 +58,7 @@ function AppRoutes() {
         <Route path="/admin/edit/:id" element={<ProtectedRoute adminOnly><CreateBidPage /></ProtectedRoute>} />
         <Route path="/admin/analytics" element={<ProtectedRoute adminOnly><AdminDashboardPage /></ProtectedRoute>} />
 
-        <Route path="/" element={<Navigate to={user ? (user.role === 'admin' ? '/admin' : '/dashboard') : '/login'} />} />
+        <Route path="/" element={user ? <Navigate to={user.role === 'admin' ? '/admin' : '/dashboard'} /> : <LandingPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </UserProfileProvider>

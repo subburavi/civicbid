@@ -26,7 +26,7 @@ const USER_NAV = [
     ),
   },
   {
-    label: 'My Applications',
+    label: 'My Proposals',
     to: '/applications',
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20">
@@ -45,12 +45,12 @@ const USER_NAV = [
     ),
   },
   {
-    label: 'Deadlines',
-    to: '/deadlines',
+    label: 'My Projects',
+    to: '/projects',
     icon: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20">
-        <circle cx="10" cy="10" r="7" stroke="currentColor" strokeWidth="1.6" />
-        <path d="M10 6v4l2.5 2.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+        <rect x="2" y="3" width="16" height="14" rx="2" stroke="currentColor" strokeWidth="1.6"/>
+        <path d="M2 7h16M6 3v4M14 3v4M6 11h4M6 14h8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
       </svg>
     ),
   },
